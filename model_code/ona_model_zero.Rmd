@@ -1,0 +1,94 @@
+---
+title: "ENA Model Zero for Dr. Bowen Hui of UBC"
+output:
+  html_document:
+    df_print: paged
+editor_options: 
+  chunk_output_type: inline
+---
+## 0. Setup 
+```{r}
+library(ona)
+library(tma)
+library(magrittr)
+setwd("~/Desktop/epistemic_analytics/hui_QE_institute")
+df <- read.csv("./datasets/reformatted_hui_data.csv") %>%
+  select(-X)
+```
+
+## 1. Define units, conversations, codes
+```{r}
+units = c("students", "week", "commitment_level")
+codes= c(
+  "Task.done.on.time.1", "Task.done.on.time.2", "Work.accepted.by.others.1", "Work.accepted.by.others.2", "Positive.tone.1",     "Positive.tone.2", "Initiate.conversations.1",  "Initiate.conversations.2",  "Help.others.1", "Help.others.2",                 "Completes.more.tasks.1", "Completes.more.tasks.2", "Assigns.tasks.1", "Assigns.tasks.2", "Review.work.from.others.1",         "Review.work.from.others.2", "Initiate.meeting.1", "Initiate.meeting.2"
+)
+my_hoo_rules <- conversation_rules(
+  (week %in% UNIT$week & commitment_level %in% UNIT$commitment_level)
+)
+contexts  = contexts(
+  x = df,
+  units = units,
+  hoo_rules = my_hoo_rules
+)
+```
+
+## 2. Accumulate and make set
+```{r}
+accum <- accumulate_contexts (
+    codes = my_codes, decay.function = decay(simple_window, window_size = 7),
+    return.ena.set = FALSE, norm.by = NULL
+) 
+set <- model(accum)
+```
+
+## 3. Plot
+```{r}
+# Low individual plot
+plot(set, title = "Low") %>%
+  units(
+    points = set$points$commitment_level$low, 
+    points_color = "red",
+    show_mean = TRUE, show_points = TRUE, with_ci = TRUE) %>%
+  edges(
+    weights = set$line.weights$commitment_level$low,
+    edge_color = c("red")) %>%
+  nodes(
+    self_connection_color = c("red"))
+
+# Mid individual plot
+plot(set, title = "Mid") %>%
+  units(
+    points = set$points$commitment_level$mid, 
+    points_color = "blue",
+    show_mean = TRUE, show_points = TRUE, with_ci = TRUE) %>%
+  edges(
+    weights = set$line.weights$commitment_level$mid,
+    edge_color = c("blue")) %>%
+  nodes(
+    self_connection_color = c("blue"))
+
+# High individual plot
+plot(set, title = "High") %>%
+  units(
+    points = set$points$commitment_level$high, 
+    points_color = "green",
+    show_mean = TRUE, show_points = TRUE, with_ci = TRUE) %>%
+  edges(
+    weights = set$line.weights$commitment_level$mid,
+    edge_color = c("green")) %>%
+  nodes(
+    self_connection_color = c("green"))
+
+# Grand mean plot
+plot(set, title = "High") %>%
+  units(
+    points = set$points, 
+    points_color = "grey",
+    show_mean = TRUE, show_points = TRUE, with_ci = TRUE) %>%
+  edges(
+    weights = set$line.weights,
+    edge_color = c("grey")) %>%
+  nodes(
+    self_connection_color = c("grey"))
+```
+
