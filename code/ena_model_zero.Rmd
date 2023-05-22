@@ -11,6 +11,7 @@ editor_options:
 library(rENA)
 library(magrittr)
 library(scales)
+library(tidyverse)
 setwd("~/Desktop/epistemic_analytics/hui_QE_institute")
 df <- read.csv("./datasets/reformatted_hui_data.csv") %>%
   select(-X)
@@ -18,7 +19,8 @@ df <- read.csv("./datasets/reformatted_hui_data.csv") %>%
 
 ## 1. Define units, conversations, codes
 ```{r}
-units = df[, c("students", "week", "commitment_level")]
+# units = df[, c("students", "week", "commitment_level")]
+units = df[, c("students", "commitment_level")]
 conversations = df[, c("students", "week", "commitment_level")]
 code_cols = c(
   "Task.done.on.time.1", "Task.done.on.time.2", "Work.accepted.by.others.1", "Work.accepted.by.others.2", "Positive.tone.1",     "Positive.tone.2", "Initiate.conversations.1",  "Initiate.conversations.2",  "Help.others.1", "Help.others.2",                 "Completes.more.tasks.1", "Completes.more.tasks.2", "Assigns.tasks.1", "Assigns.tasks.2", "Review.work.from.others.1",         "Review.work.from.others.2", "Initiate.meeting.1", "Initiate.meeting.2"
@@ -50,7 +52,6 @@ mid_points = as.matrix(set$points$commitment_level$mid)
 high_points = as.matrix(set$points$commitment_level$high)
 points_max = max(low_points, mid_points, high_points)
 
-
 # low_points_scaled = scales::rescale(low_points,
 #                                     c(0,max(as.matrix(set$rotation$nodes))), c(0,points_max))
 # mid_points_scaled = scales::rescale(mid_points,
@@ -68,12 +69,13 @@ high_mean = as.vector(colMeans(high_lw))
 
 ### Plot for low students
 ```{r}
+# TODO: Error here 
 plot_low = ena.plot(set, title = "Mean Low Network", font.family = "Times") %>%
   ena.plot.points(points = low_points, colors = c("red")) %>%
   ena.plot.group(points = low_points, colors =c("red"),
                          confidence.interval = "box") %>% 
   ena.plot.network(network = low_mean)
-plot_low$plot
+plot_low$plot 
 ```
 
 ### Plot for mid students
