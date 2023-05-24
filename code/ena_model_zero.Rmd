@@ -20,7 +20,7 @@ df <- read.csv("./datasets/reformatted_hui_data.csv") %>%
 ## 1. Define units, conversations, codes
 ```{r}
 # units = df[, c("students", "week", "commitment_level")]
-units = df[, c("students", "commitment_level")]
+units = df[, c("week", "students", "commitment_level")]
 conversations = df[, c("students", "week", "commitment_level")]
 code_cols = c(
   "Task.done.on.time.1", "Task.done.on.time.2", "Work.accepted.by.others.1", "Work.accepted.by.others.2", "Positive.tone.1",     "Positive.tone.2", "Initiate.conversations.1",  "Initiate.conversations.2",  "Help.others.1", "Help.others.2",                 "Completes.more.tasks.1", "Completes.more.tasks.2", "Assigns.tasks.1", "Assigns.tasks.2", "Review.work.from.others.1",         "Review.work.from.others.2", "Initiate.meeting.1", "Initiate.meeting.2"
@@ -69,9 +69,8 @@ high_mean = as.vector(colMeans(high_lw))
 
 ### Plot for low students
 ```{r}
-# TODO: Error here 
 plot_low = ena.plot(set, title = "Mean Low Network", font.family = "Times") %>%
-  ena.plot.points(points = low_points, colors = c("red")) %>%
+  #ena.plot.points(points = low_points, colors = c("red")) %>%
   ena.plot.group(points = low_points, colors =c("red"),
                          confidence.interval = "box") %>% 
   ena.plot.network(network = low_mean)
@@ -81,7 +80,9 @@ plot_low$plot
 ### Plot for mid students
 ```{r}
 plot_mid = ena.plot(set, title = "Mean Mid Network") %>%
-  ena.plot.points(points = mid_points, colors = c("blue")) %>%
+  #ena.plot.points(points = mid_points, colors = c("blue")) %>%
+    ena.plot.group(points = mid_points, colors =c("blue"),
+                         confidence.interval = "box") %>% 
   ena.plot.network(network = mid_mean)
 plot_mid$plot
 ```
@@ -89,7 +90,9 @@ plot_mid$plot
 ### Plot for high students
 ```{r}
 plot_high = ena.plot(set, title = "Mean High Network") %>%
-  ena.plot.points(points = high_points, colors = c("orange")) %>%
+ #  ena.plot.points(points = high_points, colors = c("orange")) %>%
+  ena.plot.group(points = high_points, colors =c("orange"),
+                         confidence.interval = "box") %>% 
   ena.plot.network(network = high_mean)
 plot_high$plot
 ```
