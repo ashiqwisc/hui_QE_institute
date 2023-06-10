@@ -38,15 +38,43 @@ accum = ena.accumulate.data(
   window.size.back = 4
 )
 
-set = ena.make.set(
-  enadata = accum
-)
+set.ena = ena.make.set(enadata = accum)
+# set.ena =
+#   ena.make.set(
+#     enadata = accum,
+#     rotation.by = ena.rotate.by.mean,
+#     rotation.params = list(
+#       accum$meta.data$commitment_level=="low",
+#       accum$meta.data$commitment_level=="mid"
+#   )
+# )
+
+# set.ena = 
+#   ena.make.set(
+#     enadata = accum, 
+#     rotation.by = ena.rotate.by.mean, 
+#     rotation.params = list(
+#       accum$meta.data$commitment_level=="low",
+#       accum$meta.data$commitment_level=="high"
+#   )
+# )
+
+# set.ena =
+#   ena.make.set(
+#     enadata = accum,
+#     rotation.by = ena.rotate.by.mean,
+#     rotation.params = list(
+#       accum$meta.data$commitment_level=="mid",
+#       accum$meta.data$commitment_level=="high"
+#   )
+# )
 ```
 
 ## 3. Plot 
 
 ### Define points and line weights
 ```{r}
+set <- set.ena
 low_points = as.matrix(set$points$commitment_level$low)
 mid_points = as.matrix(set$points$commitment_level$mid)
 high_points = as.matrix(set$points$commitment_level$high)
@@ -73,7 +101,7 @@ plot_low = ena.plot(set, title = "Mean Low Network", font.family = "Times") %>%
   #ena.plot.points(points = low_points, colors = c("red")) %>%
   ena.plot.group(points = low_points, colors =c("red"),
                          confidence.interval = "box") %>% 
-  ena.plot.network(network = low_mean)
+  ena.plot.network(network = low_mean, colors = c("red"), labels = FALSE)
 plot_low$plot 
 ```
 
@@ -81,9 +109,9 @@ plot_low$plot
 ```{r}
 plot_mid = ena.plot(set, title = "Mean Mid Network") %>%
   #ena.plot.points(points = mid_points, colors = c("blue")) %>%
-    ena.plot.group(points = mid_points, colors =c("blue"),
+    ena.plot.group(points = mid_points, colors= c("blue"),
                          confidence.interval = "box") %>% 
-  ena.plot.network(network = mid_mean)
+  ena.plot.network(network = mid_mean, colors = c("blue"), labels = FALSE)
 plot_mid$plot
 ```
 
@@ -91,10 +119,103 @@ plot_mid$plot
 ```{r}
 plot_high = ena.plot(set, title = "Mean High Network") %>%
  #  ena.plot.points(points = high_points, colors = c("orange")) %>%
-  ena.plot.group(points = high_points, colors =c("orange"),
+  ena.plot.group(points = high_points, colors =c("purple"),
                          confidence.interval = "box") %>% 
-  ena.plot.network(network = high_mean)
+  ena.plot.network(network = high_mean, colors = c("purple"), labels = FALSE)
 plot_high$plot
+```
+
+## Difference plots 
+```{r}
+# Low vs Mid
+subtracted_low_mid = low_mean - mid_mean
+low_v_mid <- ena.plot(set, title = "Low v. Mid", font.family = "Times") %>% 
+          ena.plot.group(point = low_points, colors =c("red"),
+                         confidence.interval = "box") %>% 
+          ena.plot.group(point = mid_points, colors =c("blue"), 
+                         confidence.interval = "box") %>%
+          ena.plot.network(network = subtracted_low_mid, colors = c("red", "blue"), labels = FALSE)
+
+low_v_mid$plot
+```
+
+
+```{r}
+# Low vs. High 
+subtracted_low_high = low_mean - high_mean
+low_v_high <- ena.plot(set, title = "Low v. High", font.family = "Times") %>% 
+          ena.plot.group(point = low_points, colors =c("red"),
+                         confidence.interval = "box") %>% 
+          ena.plot.group(point = high_points, colors =c("purple"), 
+                         confidence.interval = "box") %>%
+          ena.plot.network(network = subtracted_low_high, colors = c("red", "purple"), labels = FALSE)
+
+low_v_high$plot
+
+```
+
+```{r}
+# Mid vs. High
+subtracted_mid_high = mid_mean - high_mean
+mid_v_high <- ena.plot(set, title = "Mid v. High", font.family = "Times") %>% 
+          ena.plot.group(point = mid_points, colors =c("blue"),
+                         confidence.interval = "box") %>% 
+          ena.plot.group(point = high_points, colors =c("purple"), 
+                         confidence.interval = "box") %>%
+          ena.plot.network(network = subtracted_mid_high, colors = c("blue", "purple"), labels = FALSE)
+
+mid_v_high$plot
+```
+
+## ENA Score Plot 
+
+```{r}
+ena_scores <- ena.plot(set, title = "ENA Scores", font.family = "Times") %>%
+  ena.plot.group(point = low_points, colors =c("red"),
+                         confidence.interval = "box") %>% 
+  ena.plot.group(point = mid_points, colors =c("blue"),
+                         confidence.interval = "box") %>%
+  ena.plot.group(point = high_points, colors =c("purple"), 
+                         confidence.interval = "box") 
+ena_scores$plot
+```
+
+
+## Statistics 
+```{r}
+library(effsize)
+# Can't verify that ENA scores are normally distributed, sample size too big for Shapiro-Wilk test to verify normality. Assumption of independence satisfied, proceed with Mann-Whitney U-Test instead. 
+
+# low <- set$points$commitment_level$low$MR1
+# mid <- set$points$commitment_level$mid$MR1
+# high <- set$points$commitment_level$high$MR1
+
+low <- set$points$commitment_level$low$SVD1
+mid <- set$points$commitment_level$mid$SVD1
+high <- set$points$commitment_level$high$SVD1
+# Low v. Mid
+
+# Mann-Whitney
+wilcox.test(low, mid)
+
+# Cohen's d 
+cohen.d(low, mid)
+
+# Low v. High
+
+# Mann-Whitney
+wilcox.test(low, high)
+
+# Cohen's d 
+cohen.d(low, high)
+
+# Mid v. High
+
+# Mann-Whitney
+wilcox.test(mid, high)
+
+# Cohen's d 
+cohen.d(mid, high)
 ```
 
 
