@@ -30,15 +30,15 @@ codes = df[, code_cols]
 
 ## 2. Accumulate, make set
 ```{r}
-# Arbitrary window size of 4 chosen
 accum = ena.accumulate.data(
-  units = units,
+  units = units,TIHCI
   conversation = conversations,
   codes = codes,
-  window.size.back = 4
+  window.size.back = 1
 )
 
-set.ena = ena.make.set(enadata = accum)
+# set.ena = ena.make.set(enadata = accum)
+
 # set.ena =
 #   ena.make.set(
 #     enadata = accum,
@@ -49,15 +49,15 @@ set.ena = ena.make.set(enadata = accum)
 #   )
 # )
 
-# set.ena = 
-#   ena.make.set(
-#     enadata = accum, 
-#     rotation.by = ena.rotate.by.mean, 
-#     rotation.params = list(
-#       accum$meta.data$commitment_level=="low",
-#       accum$meta.data$commitment_level=="high"
-#   )
-# )
+set.ena =
+  ena.make.set(
+    enadata = accum,
+    rotation.by = ena.rotate.by.mean,
+    rotation.params = list(
+      accum$meta.data$commitment_level=="low",
+      accum$meta.data$commitment_level=="high"
+  )
+)
 
 # set.ena =
 #   ena.make.set(
@@ -134,7 +134,7 @@ low_v_mid <- ena.plot(set, title = "Low v. Mid", font.family = "Times") %>%
                          confidence.interval = "box") %>% 
           ena.plot.group(point = mid_points, colors =c("blue"), 
                          confidence.interval = "box") %>%
-          ena.plot.network(network = subtracted_low_mid, colors = c("red", "blue"), labels = FALSE)
+          ena.plot.network(network = subtracted_low_mid * 6, colors = c("red", "blue"), labels = FALSE)
 
 low_v_mid$plot
 ```
@@ -148,7 +148,7 @@ low_v_high <- ena.plot(set, title = "Low v. High", font.family = "Times") %>%
                          confidence.interval = "box") %>% 
           ena.plot.group(point = high_points, colors =c("purple"), 
                          confidence.interval = "box") %>%
-          ena.plot.network(network = subtracted_low_high, colors = c("red", "purple"), labels = FALSE)
+          ena.plot.network(network = subtracted_low_high * 6, colors = c("red", "purple"), labels = FALSE)
 
 low_v_high$plot
 
@@ -162,7 +162,7 @@ mid_v_high <- ena.plot(set, title = "Mid v. High", font.family = "Times") %>%
                          confidence.interval = "box") %>% 
           ena.plot.group(point = high_points, colors =c("purple"), 
                          confidence.interval = "box") %>%
-          ena.plot.network(network = subtracted_mid_high, colors = c("blue", "purple"), labels = FALSE)
+          ena.plot.network(network = subtracted_mid_high * 6, colors = c("blue", "purple"), labels = FALSE)
 
 mid_v_high$plot
 ```
@@ -186,13 +186,14 @@ ena_scores$plot
 library(effsize)
 # Can't verify that ENA scores are normally distributed, sample size too big for Shapiro-Wilk test to verify normality. Assumption of independence satisfied, proceed with Mann-Whitney U-Test instead. 
 
+low <- set$points$commitment_level$low$SVD2
+mid <- set$points$commitment_level$mid$SVD2
+high <- set$points$commitment_level$high$SVD2
+
 # low <- set$points$commitment_level$low$MR1
 # mid <- set$points$commitment_level$mid$MR1
 # high <- set$points$commitment_level$high$MR1
 
-low <- set$points$commitment_level$low$SVD1
-mid <- set$points$commitment_level$mid$SVD1
-high <- set$points$commitment_level$high$SVD1
 # Low v. Mid
 
 # Mann-Whitney
@@ -216,6 +217,42 @@ wilcox.test(mid, high)
 
 # Cohen's d 
 cohen.d(mid, high)
+
+
+```
+
+```{r}
+# Base rate discovery 
+low <- df %>% 
+  filter(commitment_level == "low") %>%
+  select(-c("students", "week", "commitment_level")) 
+low <- as.data.frame(colSums(low)) %>%
+  rename(low = `colSums(low)`)
+
+low$low <- low$low / 19500
+
+mid <- df %>% 
+  filter(commitment_level == "mid") %>% 
+  select(-c("students", "week", "commitment_level"))
+mid <- as.data.frame(colSums(mid)) %>%
+  rename(mid = `colSums(mid)`)
+
+mid$mid <- mid$mid / 19500
+
+high <- df %>%
+  filter(commitment_level == "high") %>% 
+  select(-c("students", "week", "commitment_level"))
+high <- as.data.frame(colSums(high)) %>%
+  rename(high = `colSums(high)`)
+
+high$high <- high$high / 19500
+
+binded <- cbind(low, mid, high)
+
+
+  
+
+
 ```
 
 
