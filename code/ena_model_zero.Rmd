@@ -8,18 +8,20 @@ editor_options:
 ---
 ## 0. Setup 
 ```{r}
+# Install necessary dependencies 
 library(rENA)
 library(magrittr)
 library(scales)
 library(tidyverse)
+# Set local working directory--feel free to change 
 setwd("~/Desktop/epistemic_analytics/hui_QE_institute")
+# Read in relevant dataset
 df <- read.csv("./datasets/reformatted_hui_data.csv") %>%
   select(-X)
 ```
 
 ## 1. Define units, conversations, codes
 ```{r}
-# units = df[, c("students", "week", "commitment_level")]
 units = df[, c("week", "students", "commitment_level")]
 conversations = df[, c("students", "week", "commitment_level")]
 code_cols = c(
@@ -31,23 +33,11 @@ codes = df[, code_cols]
 ## 2. Accumulate, make set
 ```{r}
 accum = ena.accumulate.data(
-  units = units,TIHCI
+  units = units,
   conversation = conversations,
   codes = codes,
   window.size.back = 1
 )
-
-# set.ena = ena.make.set(enadata = accum)
-
-# set.ena =
-#   ena.make.set(
-#     enadata = accum,
-#     rotation.by = ena.rotate.by.mean,
-#     rotation.params = list(
-#       accum$meta.data$commitment_level=="low",
-#       accum$meta.data$commitment_level=="mid"
-#   )
-# )
 
 set.ena =
   ena.make.set(
@@ -58,19 +48,11 @@ set.ena =
       accum$meta.data$commitment_level=="high"
   )
 )
-
-# set.ena =
-#   ena.make.set(
-#     enadata = accum,
-#     rotation.by = ena.rotate.by.mean,
-#     rotation.params = list(
-#       accum$meta.data$commitment_level=="mid",
-#       accum$meta.data$commitment_level=="high"
-#   )
-# )
 ```
 
 ## 3. Plot 
+
+Note: Labels are manually adjusted in the slides. To see plots without labels, add "labels = FALSE" in the "ena.plot.network" section of every network's code
 
 ### Define points and line weights
 ```{r}
@@ -79,13 +61,6 @@ low_points = as.matrix(set$points$commitment_level$low)
 mid_points = as.matrix(set$points$commitment_level$mid)
 high_points = as.matrix(set$points$commitment_level$high)
 points_max = max(low_points, mid_points, high_points)
-
-# low_points_scaled = scales::rescale(low_points,
-#                                     c(0,max(as.matrix(set$rotation$nodes))), c(0,points_max))
-# mid_points_scaled = scales::rescale(mid_points,
-#                                      c(0,max(as.matrix(set$rotation$nodes))), c(0,points_max))
-# high_points_scaled = scales::rescale(high_points,
-#                                      c(0,max(as.matrix(set$rotation$nodes))), c(0,points_max))
 
 low_lw = as.matrix(set$line.weights$commitment_level$low)
 low_mean = as.vector(colMeans(low_lw))
@@ -101,7 +76,7 @@ plot_low = ena.plot(set, title = "Mean Low Network", font.family = "Times") %>%
   #ena.plot.points(points = low_points, colors = c("red")) %>%
   ena.plot.group(points = low_points, colors =c("red"),
                          confidence.interval = "box") %>% 
-  ena.plot.network(network = low_mean, colors = c("red"), labels = FALSE)
+  ena.plot.network(network = low_mean, colors = c("red"))
 plot_low$plot 
 ```
 
@@ -111,7 +86,7 @@ plot_mid = ena.plot(set, title = "Mean Mid Network") %>%
   #ena.plot.points(points = mid_points, colors = c("blue")) %>%
     ena.plot.group(points = mid_points, colors= c("blue"),
                          confidence.interval = "box") %>% 
-  ena.plot.network(network = mid_mean, colors = c("blue"), labels = FALSE)
+  ena.plot.network(network = mid_mean, colors = c("blue"))
 plot_mid$plot
 ```
 
@@ -121,7 +96,7 @@ plot_high = ena.plot(set, title = "Mean High Network") %>%
  #  ena.plot.points(points = high_points, colors = c("orange")) %>%
   ena.plot.group(points = high_points, colors =c("purple"),
                          confidence.interval = "box") %>% 
-  ena.plot.network(network = high_mean, colors = c("purple"), labels = FALSE)
+  ena.plot.network(network = high_mean, colors = c("purple"))
 plot_high$plot
 ```
 
@@ -134,7 +109,7 @@ low_v_mid <- ena.plot(set, title = "Low v. Mid", font.family = "Times") %>%
                          confidence.interval = "box") %>% 
           ena.plot.group(point = mid_points, colors =c("blue"), 
                          confidence.interval = "box") %>%
-          ena.plot.network(network = subtracted_low_mid * 6, colors = c("red", "blue"), labels = FALSE)
+          ena.plot.network(network = subtracted_low_mid * 6, colors = c("red", "blue"))
 
 low_v_mid$plot
 ```
@@ -148,7 +123,7 @@ low_v_high <- ena.plot(set, title = "Low v. High", font.family = "Times") %>%
                          confidence.interval = "box") %>% 
           ena.plot.group(point = high_points, colors =c("purple"), 
                          confidence.interval = "box") %>%
-          ena.plot.network(network = subtracted_low_high * 6, colors = c("red", "purple"), labels = FALSE)
+          ena.plot.network(network = subtracted_low_high * 6, colors = c("red", "purple"))
 
 low_v_high$plot
 
@@ -162,7 +137,7 @@ mid_v_high <- ena.plot(set, title = "Mid v. High", font.family = "Times") %>%
                          confidence.interval = "box") %>% 
           ena.plot.group(point = high_points, colors =c("purple"), 
                          confidence.interval = "box") %>%
-          ena.plot.network(network = subtracted_mid_high * 6, colors = c("blue", "purple"), labels = FALSE)
+          ena.plot.network(network = subtracted_mid_high * 6, colors = c("blue", "purple"))
 
 mid_v_high$plot
 ```
@@ -221,6 +196,7 @@ cohen.d(mid, high)
 
 ```
 
+## Data Discovery
 ```{r}
 # Base rate discovery 
 low <- df %>% 
@@ -248,10 +224,6 @@ high <- as.data.frame(colSums(high)) %>%
 high$high <- high$high / 19500
 
 binded <- cbind(low, mid, high)
-
-
-  
-
 
 ```
 
