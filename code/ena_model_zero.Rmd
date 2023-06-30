@@ -159,39 +159,40 @@ ena_scores$plot
 ## Statistics 
 ```{r}
 library(effsize)
+library(effectsize)
 # Can't verify that ENA scores are normally distributed, sample size too big for Shapiro-Wilk test to verify normality. Assumption of independence satisfied, proceed with Mann-Whitney U-Test instead. 
 
-low <- set$points$commitment_level$low$SVD2
-mid <- set$points$commitment_level$mid$SVD2
-high <- set$points$commitment_level$high$SVD2
+# low <- set$points$commitment_level$low$SVD2
+# mid <- set$points$commitment_level$mid$SVD2
+# high <- set$points$commitment_level$high$SVD2
 
-# low <- set$points$commitment_level$low$MR1
-# mid <- set$points$commitment_level$mid$MR1
-# high <- set$points$commitment_level$high$MR1
+low <- set$points$commitment_level$low$MR1
+mid <- set$points$commitment_level$mid$MR1
+high <- set$points$commitment_level$high$MR1
 
 # Low v. Mid
 
 # Mann-Whitney
 wilcox.test(low, mid)
 
-# Cohen's d 
-cohen.d(low, mid)
+# Rank Biserial
+rank_biserial(low, mid)
 
 # Low v. High
 
 # Mann-Whitney
 wilcox.test(low, high)
 
-# Cohen's d 
-cohen.d(low, high)
+# Rank Biserial 
+rank_biserial(low, high)
 
 # Mid v. High
 
 # Mann-Whitney
 wilcox.test(mid, high)
 
-# Cohen's d 
-cohen.d(mid, high)
+# Rank Biserial
+rank_biserial(mid, high)
 
 
 ```
