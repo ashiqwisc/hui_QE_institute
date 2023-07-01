@@ -1,11 +1,15 @@
 ---
-title: "ENA Model Zero for Dr. Bowen Hui of UBC"
-output:
-  html_document:
-    df_print: paged
-editor_options: 
-  chunk_output_type: inline
+title: "ena_weighted_model"
+author: "Yeyu Wang"
+date: "2023-07-01"
+output: html_document
+------
+title: "ena_model_window_2"
+author: "Yeyu Wang"
+date: "2023-07-01"
+output: html_document
 ---
+
 ## 0. Setup 
 ```{r}
 # Install necessary dependencies 
@@ -18,15 +22,27 @@ setwd("/Users/ywang2466/Documents/GitHub/hui_QE_institute")
 # Read in relevant dataset
 df <- read.csv("./datasets/reformatted_hui_data.csv") %>%
   select(-X)
+df
+```
+
+
+```{r}
+codes <- c("Task.done.on.time", "Work.accepted.by.others", "Positive.tone", "Initiate.conversations",  "Help.others", "Completes.more.tasks", "Assigns.tasks", "Review.work.from.others","Initiate.meeting")
+
+for(code in codes){
+    print(code)
+    df[,paste0(code,".1")] <- ifelse(df[,paste0(code,".2")] == 1, 2, df[,paste0(code,".1")])
+    df[,code] <- df[,paste0(code,".1")]
+}
+
+df
 ```
 
 ## 1. Define units, conversations, codes
 ```{r}
 units = df[, c("students", "commitment_level")]
 conversations = df[, c("students", "commitment_level")]
-code_cols = c(
-  "Task.done.on.time.1", "Task.done.on.time.2", "Work.accepted.by.others.1", "Work.accepted.by.others.2", "Positive.tone.1",     "Positive.tone.2", "Initiate.conversations.1",  "Initiate.conversations.2",  "Help.others.1", "Help.others.2",                 "Completes.more.tasks.1", "Completes.more.tasks.2", "Assigns.tasks.1", "Assigns.tasks.2", "Review.work.from.others.1",         "Review.work.from.others.2", "Initiate.meeting.1", "Initiate.meeting.2"
-)
+code_cols =codes
 codes = df[, code_cols]
 ```
 
@@ -34,12 +50,13 @@ codes = df[, code_cols]
 ```{r}
 accum = ena.accumulate.data(
   units = units,
+  weight.by = function(x){x},
   conversation = conversations,
   codes = codes,
-  window.size.back = 1
+  window.size.back = 2
 )
 
-set.ena =
+set_win_2_weighted =
   ena.make.set(
     enadata = accum,
     rotation.by = ena.rotate.by.mean,
@@ -48,6 +65,11 @@ set.ena =
       accum$meta.data$commitment_level=="high"
   )
 )
+# set_win_2_weighted =
+#   ena.make.set(
+#     enadata = accum,
+#     rotation.by = ena.rotate.by.mean
+# )
 ```
 
 ## 3. Plot 
@@ -56,7 +78,7 @@ Note: Labels are manually adjusted in the slides. To see plots without labels, a
 
 ### Define points and line weights
 ```{r}
-set <- set.ena
+set <- set_win_2_weighted
 low_points = as.matrix(set$points$commitment_level$low)
 mid_points = as.matrix(set$points$commitment_level$mid)
 high_points = as.matrix(set$points$commitment_level$high)
@@ -156,76 +178,76 @@ ena_scores$plot
 ```
 
 
-## Statistics 
-```{r}
-library(effsize)
-library(effectsize)
-# Can't verify that ENA scores are normally distributed, sample size too big for Shapiro-Wilk test to verify normality. Assumption of independence satisfied, proceed with Mann-Whitney U-Test instead. 
+<!-- ## Statistics  -->
+<!-- ```{r} -->
+<!-- library(effsize) -->
+<!-- library(effectsize) -->
+<!-- # Can't verify that ENA scores are normally distributed, sample size too big for Shapiro-Wilk test to verify normality. Assumption of independence satisfied, proceed with Mann-Whitney U-Test instead.  -->
 
-# low <- set$points$commitment_level$low$SVD2
-# mid <- set$points$commitment_level$mid$SVD2
-# high <- set$points$commitment_level$high$SVD2
+<!-- # low <- set$points$commitment_level$low$SVD2 -->
+<!-- # mid <- set$points$commitment_level$mid$SVD2 -->
+<!-- # high <- set$points$commitment_level$high$SVD2 -->
 
-low <- set$points$commitment_level$low$MR1
-mid <- set$points$commitment_level$mid$MR1
-high <- set$points$commitment_level$high$MR1
+<!-- low <- set$points$commitment_level$low$MR1 -->
+<!-- mid <- set$points$commitment_level$mid$MR1 -->
+<!-- high <- set$points$commitment_level$high$MR1 -->
 
-# Low v. Mid
+<!-- # Low v. Mid -->
 
-# Mann-Whitney
-wilcox.test(low, mid)
+<!-- # Mann-Whitney -->
+<!-- wilcox.test(low, mid) -->
 
-# Rank Biserial
-rank_biserial(low, mid)
+<!-- # Rank Biserial -->
+<!-- rank_biserial(low, mid) -->
 
-# Low v. High
+<!-- # Low v. High -->
 
-# Mann-Whitney
-wilcox.test(low, high)
+<!-- # Mann-Whitney -->
+<!-- wilcox.test(low, high) -->
 
-# Rank Biserial 
-rank_biserial(low, high)
+<!-- # Rank Biserial  -->
+<!-- rank_biserial(low, high) -->
 
-# Mid v. High
+<!-- # Mid v. High -->
 
-# Mann-Whitney
-wilcox.test(mid, high)
+<!-- # Mann-Whitney -->
+<!-- wilcox.test(mid, high) -->
 
-# Rank Biserial
-rank_biserial(mid, high)
+<!-- # Rank Biserial -->
+<!-- rank_biserial(mid, high) -->
 
 
-```
+<!-- ``` -->
 
-## Data Discovery
-```{r}
-# Base rate discovery 
-low <- df %>% 
-  filter(commitment_level == "low") %>%
-  select(-c("students", "week", "commitment_level")) 
-low <- as.data.frame(colSums(low)) %>%
-  rename(low = `colSums(low)`)
+<!-- ## Data Discovery -->
+<!-- ```{r} -->
+<!-- # Base rate discovery  -->
+<!-- low <- df %>%  -->
+<!--   filter(commitment_level == "low") %>% -->
+<!--   select(-c("students", "week", "commitment_level"))  -->
+<!-- low <- as.data.frame(colSums(low)) %>% -->
+<!--   rename(low = `colSums(low)`) -->
 
-low$low <- low$low / 19500
+<!-- low$low <- low$low / 19500 -->
 
-mid <- df %>% 
-  filter(commitment_level == "mid") %>% 
-  select(-c("students", "week", "commitment_level"))
-mid <- as.data.frame(colSums(mid)) %>%
-  rename(mid = `colSums(mid)`)
+<!-- mid <- df %>%  -->
+<!--   filter(commitment_level == "mid") %>%  -->
+<!--   select(-c("students", "week", "commitment_level")) -->
+<!-- mid <- as.data.frame(colSums(mid)) %>% -->
+<!--   rename(mid = `colSums(mid)`) -->
 
-mid$mid <- mid$mid / 19500
+<!-- mid$mid <- mid$mid / 19500 -->
 
-high <- df %>%
-  filter(commitment_level == "high") %>% 
-  select(-c("students", "week", "commitment_level"))
-high <- as.data.frame(colSums(high)) %>%
-  rename(high = `colSums(high)`)
+<!-- high <- df %>% -->
+<!--   filter(commitment_level == "high") %>%  -->
+<!--   select(-c("students", "week", "commitment_level")) -->
+<!-- high <- as.data.frame(colSums(high)) %>% -->
+<!--   rename(high = `colSums(high)`) -->
 
-high$high <- high$high / 19500
+<!-- high$high <- high$high / 19500 -->
 
-binded <- cbind(low, mid, high)
+<!-- binded <- cbind(low, mid, high) -->
 
-```
+<!-- ``` -->
 
 

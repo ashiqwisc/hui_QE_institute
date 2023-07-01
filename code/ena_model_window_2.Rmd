@@ -1,11 +1,10 @@
 ---
-title: "ENA Model Zero for Dr. Bowen Hui of UBC"
-output:
-  html_document:
-    df_print: paged
-editor_options: 
-  chunk_output_type: inline
+title: "ena_model_window_2"
+author: "Yeyu Wang"
+date: "2023-07-01"
+output: html_document
 ---
+
 ## 0. Setup 
 ```{r}
 # Install necessary dependencies 
@@ -34,12 +33,13 @@ codes = df[, code_cols]
 ```{r}
 accum = ena.accumulate.data(
   units = units,
+  weight.by = function(x){x}, 
   conversation = conversations,
   codes = codes,
-  window.size.back = 1
+  window.size.back = 2
 )
 
-set.ena =
+set_win_2 =
   ena.make.set(
     enadata = accum,
     rotation.by = ena.rotate.by.mean,
@@ -48,6 +48,11 @@ set.ena =
       accum$meta.data$commitment_level=="high"
   )
 )
+# set_win_2 =
+#   ena.make.set(
+#     enadata = accum,
+#     rotation.by = ena.rotate.by.mean
+# )
 ```
 
 ## 3. Plot 
@@ -56,7 +61,7 @@ Note: Labels are manually adjusted in the slides. To see plots without labels, a
 
 ### Define points and line weights
 ```{r}
-set <- set.ena
+set <- set_win_2
 low_points = as.matrix(set$points$commitment_level$low)
 mid_points = as.matrix(set$points$commitment_level$mid)
 high_points = as.matrix(set$points$commitment_level$high)
