@@ -18,7 +18,8 @@ library(magrittr)
 library(scales)
 library(tidyverse)
 # Set local working directory--feel free to change 
-setwd("/Users/ywang2466/Documents/GitHub/hui_QE_institute")
+# setwd("/Users/ywang2466/Documents/GitHub/hui_QE_institute")
+setwd("~/Desktop/epistemic_analytics/hui_QE_institute")
 # Read in relevant dataset
 df <- read.csv("./datasets/reformatted_hui_data.csv") %>%
   select(-X)
@@ -177,6 +178,20 @@ ena_scores <- ena.plot(set, title = "ENA Scores", font.family = "Times") %>%
 ena_scores$plot
 ```
 
+## Grand Mean Plot
+```{r}
+gm <- ena.plot(set, title = "ENA Scores", font.family = "Times") %>%
+  ena.plot.group(point = low_points, colors =c("red"),
+                         confidence.interval = "box") %>% 
+  ena.plot.group(point = mid_points, colors =c("blue"),
+                         confidence.interval = "box") %>%
+  ena.plot.group(point = high_points, colors =c("purple"), 
+                         confidence.interval = "box") %>%
+  ena.plot.network(network = low_mean, color = c("black")) %>% 
+  ena.plot.network(network = mid_mean, color = c("black"), labels = FALSE) %>% 
+  ena.plot.network(network = high_mean, color = c("black"), labels = FALSE) 
+gm$plot
+```
 
 <!-- ## Statistics  -->
 <!-- ```{r} -->
